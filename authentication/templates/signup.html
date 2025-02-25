@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/signup.css' %}">
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Sign Up</h1>
+        <form method="post" action="{% url 'signup' %}" onsubmit="return validateForm()">
+            {% csrf_token %}
+            <div class="input-box">
+                <input type="text" id="username" name="username" placeholder="Username" required>
+            </div>
+            <div class="input-box">
+                <input type="text" id="phone" name="phone" placeholder="Phone Number" required>
+            </div>
+            <div class="input-box">
+                <input type="email" id="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="input-box">
+                <input type="password" id="password1" name="password1" placeholder="Password" required>
+            </div>
+            <div class="input-box">
+                <input type="password" id="password2" name="password2" placeholder="Confirm Password" required>
+            </div>
+            <button type="submit" class="btn">Sign Up</button>
+            <div class="register-link">
+                <p>Already have an account? <a href="{% url 'signin' %}">Login</a></p>
+            </div>
+        </form>
+        
+        <!-- Error message display -->
+        <p id="error-message" style="color: red; text-align: center;"></p>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <!-- Link to JavaScript file -->
+    <script src="{% static 'js/main.js' %}"></script>
+
+    <script>
+        function validateForm() {
+            let username = document.getElementById("username").value;
+            let phone = document.getElementById("phone").value;
+            let email = document.getElementById("email").value;
+            let password1 = document.getElementById("password1").value;
+            let password2 = document.getElementById("password2").value;
+            let errorMessage = document.getElementById("error-message");
+
+            // Username validation (at least 3 characters)
+            if (username.length < 3) {
+                errorMessage.innerText = "Username must be at least 3 characters long!";
+                return false;
+            }
+
+            // Phone validation (10-digit number)
+            let phonePattern = /^[0-9]{10}$/;
+            if (!phonePattern.test(phone)) {
+                errorMessage.innerText = "Enter a valid 10-digit phone number!";
+                return false;
+            }
+
+            // Email validation
+            let emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                errorMessage.innerText = "Enter a valid email address!";
+                return false;
+            }
+
+            // Password strength validation
+            if (password1.length < 8) {
+                errorMessage.innerText = "Password must be at least 8 characters long!";
+                return false;
+            }
+            if (!/[A-Z]/.test(password1)) {
+                errorMessage.innerText = "Password must contain at least one uppercase letter!";
+                return false;
+            }
+            if (!/[a-z]/.test(password1)) {
+                errorMessage.innerText = "Password must contain at least one lowercase letter!";
+                return false;
+            }
+            if (!/[0-9]/.test(password1)) {
+                errorMessage.innerText = "Password must contain at least one number!";
+                return false;
+            }
+            if (!/[@$!%*?&]/.test(password1)) {
+                errorMessage.innerText = "Password must contain at least one special character (@$!%*?&)!";
+                return false;
+            }
+
+            // Check if passwords match
+            if (password1 !== password2) {
+                errorMessage.innerText = "Passwords do not match!";
+                return false;
+            }
+
+            // If all validations pass
+            return true;
+        }
+    </script>
+
+</body>
+</html>

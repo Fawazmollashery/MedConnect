@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Medical Chatbot</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+        }
+        h1 {
+            font-size: 3rem;
+            margin: 20px 0;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+        .btn-signin {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .btn-signin:hover {
+            background-color: #0056b3;
+        }
+        .btn-signup {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .btn-signup:hover {
+            background-color: #1e7e34;
+        }
+        #map-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+        #map {
+            width: 90%;
+            max-width: 600px;
+            height: 400px;
+            border-radius: 10px;
+        }
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .chatbot-container button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .chatbot-container button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        .close-map {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #fff;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Medical Chatbot</h1>
+    <p>Get quick and reliable medical assistance at your fingertips.</p>
+    <div class="btn-container">
+        <a href="{% url 'signin' %}" class="btn btn-signin">Sign In</a>
+        <a href="{% url 'signup' %}" class="btn btn-signup">Sign Up</a>
+    </div>
+
+    <!-- Map Modal -->
+    <div id="map-modal">
+        <button class="close-map" onclick="closeMap()">✖</button>
+        <div id="map"></div>
+    </div>
+
+    <!-- Chatbot and Map Buttons -->
+    <div class="chatbot-container">
+        <button onclick="showMap()">🗺</button>
+        <button onclick="openChatbot()">💬</button>
+    </div>
+
+    <script>
+        let map; // Global map variable
+
+        // Open Chatbot
+        function openChatbot() {
+            window.location.href = "/chatbot"; // Ensure this URL matches your Django chatbot route
+        }
+
+        // Show Map
+        function showMap() {
+            document.getElementById('map-modal').style.display = 'flex';
+
+            if (!map) {
+                // Initialize Leaflet Map
+                map = L.map('map').setView([0, 0], 13); // Default location (0, 0)
+
+                // Add Tile Layer (OpenStreetMap)
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                // Get User's Location
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const { latitude, longitude } = position.coords;
+                            map.setView([latitude, longitude], 14);
+
+                            // Add a marker for user's location
+                            L.marker([latitude, longitude]).addTo(map)
+                                .bindPopup("You are here")
+                                .openPopup();
+
+                            // Fetch nearby clinics and hospitals
+                            fetchNearbyLocations(latitude, longitude);
+                        },
+                        () => {
+                            alert("Unable to fetch your location.");
+                        }
+                    );
+                } else {
+                    alert("Geolocation is not supported by your browser.");
+                }
+            }
+        }
+
+        // Fetch Nearby Clinics and Hospitals (Dummy Data)
+        function fetchNearbyLocations(latitude, longitude) {
+            const locations = [
+                { name: "Clinic A", lat: latitude + 0.01, lng: longitude + 0.01 },
+                { name: "Hospital B", lat: latitude - 0.01, lng: longitude - 0.01 },
+                { name: "Health Center C", lat: latitude + 0.02, lng: longitude }
+            ];
+
+            locations.forEach(loc => {
+                L.marker([loc.lat, loc.lng]).addTo(map)
+                    .bindPopup(`<b>${loc.name}</b>`);
+            });
+        }
+
+        // Close Map
+        function closeMap() {
+            document.getElementById('map-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
